@@ -7,7 +7,7 @@ LABEL "com.github.actions.color"="orange"
 LABEL "repository"="https://github.com/diejmon/SMosquitto.git"
 LABEL "homepage"="http://github.com/actions"
 LABEL "maintainer"="diejmon@gmail.com"
-RUN apt-get update && apt-get install -y git
+RUN apt-get update && apt-get install -y git libmosquitto-dev
 RUN mkdir /SMosquitto
 WORKDIR /SMosquitto
 COPY . /SMosquitto

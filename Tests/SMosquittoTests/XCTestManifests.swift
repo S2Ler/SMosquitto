@@ -2,7 +2,10 @@ import XCTest
 
 extension SMosquittoErrorTests {
     static let __allTests = [
-        ("testExample", testExample),
+        ("testDescription", testDescription),
+        ("testThatErrorCodeThrows", testThatErrorCodeThrows),
+        ("testThatSuccessDoNotThrows", testThatSuccessDoNotThrows),
+        ("testUnknownErrorCode", testUnknownErrorCode),
     ]
 }
 

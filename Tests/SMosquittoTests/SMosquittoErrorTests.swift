@@ -1,13 +1,41 @@
 import XCTest
+import cmosquitto
+@testable import SMosquitto
 
 class SMosquittoErrorTests: XCTestCase {
-
-    func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+  func testThatSuccessDoNotThrows() {
+    do {
+      try MOSQ_ERR_SUCCESS.rawValue.failable()
     }
+    catch {
+      XCTFail("Failed with error: \(error)")
+    }
+  }
 
-  static var allTests = [
-    ("testExample", testExample),
-    ]
+  func testThatErrorCodeThrows() {
+    do {
+      try MOSQ_ERR_NOMEM.rawValue.failable()
+      XCTFail("Doesn't fail")
+    }
+    catch {
+      // expected
+    }
+  }
+
+  func testUnknownErrorCode() {
+    do {
+      try (MosqErrRawValue.max - 1).failable()
+      XCTFail("Doesn't fail")
+    }
+    catch SMosquittoError.unknown {
+      // expected
+    }
+    catch {
+      XCTFail("Unexpected error: \(error)")
+    }
+  }
+
+  func testDescription() {
+    XCTAssertEqual(SMosquittoError.unknown.description, "Unknown error.")
+  }
 }

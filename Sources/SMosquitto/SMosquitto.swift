@@ -15,11 +15,14 @@ public class SMosquitto {
   }
 
   public init(id: String? = nil, cleanSession: Bool = true) {
-    if let id = id {
-      self.handle = mosquitto_new(id, cleanSession, nil)
-    }
-    else {
-      self.handle = mosquitto_new(nil, cleanSession, nil)
-    }
+    self.handle = mosquitto_new(id, cleanSession, nil)
+  }
+
+  public func reinitialise(id: String? = nil, cleanSession: Bool = true) throws {
+    try mosquitto_reinitialise(handle, id, cleanSession, nil).failable()
+  }
+
+  deinit {
+    mosquitto_destroy(handle)
   }
 }

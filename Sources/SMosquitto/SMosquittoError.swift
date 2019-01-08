@@ -2,8 +2,9 @@ import cmosquitto
 import Foundation
 
 public typealias MosqErrRawValue = Int32
+private let SuccessReturnCode = MOSQ_ERR_SUCCESS.rawValue;
 
-public enum SMosquittoError: MosqErrRawValue {
+public enum SMosquittoError: MosqErrRawValue, Swift.Error {
   case connectionPending = -1
   case noMemory = 1
   case `protocol` = 2
@@ -30,5 +31,20 @@ public enum SMosquittoError: MosqErrRawValue {
 extension SMosquittoError: CustomStringConvertible {
   public var description: String {
     return String(cString: mosquitto_strerror(self.rawValue))
+  }
+}
+
+internal extension MosqErrRawValue {
+  func failable() throws {
+    guard self != SuccessReturnCode else {
+      return
+    }
+
+    if let error = SMosquittoError(rawValue: self) {
+      throw error
+    }
+    else {
+      throw SMosquittoError.unknown
+    }
   }
 }

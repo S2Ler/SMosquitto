@@ -21,6 +21,10 @@ let package = Package(
       name: "SMosquitto",
       dependencies: ["cmosquitto"],
       path: "Sources/SMosquitto"
+    ),
+    .testTarget(
+      name: "SMosquittoTests",
+      dependencies: ["SMosquitto"]
     )
   ],
   swiftLanguageVersions: [.v4_2]

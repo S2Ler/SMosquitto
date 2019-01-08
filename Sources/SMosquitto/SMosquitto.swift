@@ -8,4 +8,8 @@ public class SMosquitto {
   public static func cleanup() {
     mosquitto_lib_cleanup();
   }
+
+  public static func version() -> SMosquittoVersion {
+    return SMosquittoVersion()
+  }
 }

@@ -1,9 +1,15 @@
 import XCTest
 
+extension SMosquittoErrorTests {
+    static let __allTests = [
+        ("testExample", testExample),
+    ]
+}
+
 #if !os(macOS)
-public func allTests() -> [XCTestCaseEntry] {
+public func __allTests() -> [XCTestCaseEntry] {
     return [
-        testCase(SMosquittoErrorTests.allTests),
+        testCase(SMosquittoErrorTests.__allTests),
     ]
 }
 #endif

@@ -3,5 +3,6 @@ import XCTest
 import SMosquittoTests
 
 var tests = [XCTestCaseEntry]()
-tests += SMosquittoTests.allTests()
+tests += SMosquittoTests.__allTests()
+
 XCTMain(tests)

@@ -1,6 +1,6 @@
 import cmosquitto
 
-public struct SMosquittoVersion: Hashable {
+public struct SMosquittoVersion: Hashable, Codable {
   public let major: Int32
   public let minor: Int32
   public let revision: Int32

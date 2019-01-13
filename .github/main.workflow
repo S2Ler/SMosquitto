@@ -10,6 +10,6 @@ action "Swift Package Build" {
 
 action "Swift Package Test" {
   uses = "diejmon/SMosquitto@master"
-  runs = "swift test --generate-linuxmain --parallel --sanitize=thread"
+  runs = "swift test --parallel"
   needs = ["Swift Package Build"]
 }

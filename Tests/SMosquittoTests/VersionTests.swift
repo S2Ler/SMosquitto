@@ -18,7 +18,7 @@ class SMosquittoVersionTests: XCTestCase {
     let version = SMosquitto.version()
     do {
       let encodedValue = try encoder.encode(version)
-      let decodedValue = try decoder.decode(SMosquittoVersion.self, from: encodedValue)
+      let decodedValue = try decoder.decode(SMosquitto.Version.self, from: encodedValue)
       XCTAssertEqual(decodedValue, version)
     }
     catch {
@@ -27,7 +27,7 @@ class SMosquittoVersionTests: XCTestCase {
   }
 
   func testHashable() {
-    var dict = [SMosquittoVersion: Int]()
+    var dict = [SMosquitto.Version: Int]()
     dict[SMosquitto.version()] = 10
     XCTAssertEqual(dict[SMosquitto.version()], 10)
   }

@@ -19,7 +19,7 @@ class SMosquittoLogLevelTests: XCTestCase {
 
   func testCreatable() {
     for logLevel in allLogLevels {
-      guard let slogLevel = SMosquittoLogLevel(rawValue: logLevel) else {
+      guard let slogLevel = SMosquitto.LogLevel(rawValue: logLevel) else {
         XCTFail("Can't construct correct log level")
         return
       }
@@ -28,12 +28,12 @@ class SMosquittoLogLevelTests: XCTestCase {
   }
 
   func testInvalidLogLevel() {
-    XCTAssertNil(SMosquittoLogLevel(rawValue: 88888))
+    XCTAssertNil(SMosquitto.LogLevel(rawValue: 88888))
   }
 
   func testDescription() {
     for logLevel in allLogLevels {
-      guard let slogLevel = SMosquittoLogLevel(rawValue: logLevel) else {
+      guard let slogLevel = SMosquitto.LogLevel(rawValue: logLevel) else {
         XCTFail("Can't construct correct log level")
         return
       }

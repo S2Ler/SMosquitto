@@ -1,5 +1,11 @@
 import XCTest
 
+extension InstancesTests {
+    static let __allTests = [
+        ("testGetSet", testGetSet),
+    ]
+}
+
 extension SMosquittoErrorTests {
     static let __allTests = [
         ("testDescription", testDescription),
@@ -28,6 +34,7 @@ extension SMosquittoVersionTests {
 #if !os(macOS)
 public func __allTests() -> [XCTestCaseEntry] {
     return [
+        testCase(InstancesTests.__allTests),
         testCase(SMosquittoErrorTests.__allTests),
         testCase(SMosquittoLogLevelTests.__allTests),
         testCase(SMosquittoVersionTests.__allTests),

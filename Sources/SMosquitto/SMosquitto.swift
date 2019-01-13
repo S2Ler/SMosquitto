@@ -2,6 +2,7 @@ import cmosquitto
 
 public class SMosquitto {
   private let handle: OpaquePointer
+  public weak var delegate: SMosquittoDelegate?
 
   public static func initialize() {
     mosquitto_lib_init();
@@ -9,6 +10,7 @@ public class SMosquitto {
 
   public func reinitialise(id: String? = nil, cleanSession: Bool = true) throws {
     try mosquitto_reinitialise(handle, id, cleanSession, nil).failable()
+    setupCallbacks()
   }
 
   public static func version() -> Version {
@@ -23,6 +25,7 @@ public class SMosquitto {
     self.handle = mosquitto_new(id, cleanSession, nil)
 
     Instances.set(handle, self)
+    setupCallbacks()
   }
 
   deinit {
@@ -38,10 +41,27 @@ public class SMosquitto {
     try mosquitto_disconnect(handle).failable()
   }
 
+  public func reconnect() throws {
+    try mosquitto_reconnect(handle).failable()
+  }
+
   public func setLoginInformation(username: String, password: String) throws {
     try mosquitto_username_pw_set(handle, username, password).failable()
   }
+}
 
-  public func setOnConnect() {
+// MARK: - Callbacks
+private extension SMosquitto {
+  private func setupCallbacks() {
+    setupOnConnectCallback()
+  }
+
+  private func setupOnConnectCallback() {
+    mosquitto_connect_callback_set(handle) { (callbackHandle, _, mosConnectionResponseCode) in
+      guard let handle = callbackHandle else { return }
+      guard let smosquitto = Instances.get(handle) else { return }
+      let code = SMosquitto.ConnectionResponseCode(mosquittoCode: mosConnectionResponseCode)
+      smosquitto.delegate?.onConnect(smosquitto, connectionResponseCode: code)
+    }
   }
 }

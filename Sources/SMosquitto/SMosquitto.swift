@@ -1,8 +1,13 @@
+import Foundation
 import cmosquitto
 
 public class SMosquitto {
   private let handle: OpaquePointer
-  public weak var delegate: SMosquittoDelegate?
+  
+  public var onConnect: ((ConnectionResponseCode) -> Void)?
+  public var onMessage: ((Message) -> Void)?
+  public var onDisconnect: ((DisconnectReason) -> Void)?
+  public var onPublish: ((Identifier<Message>) -> Void)?
 
   public static func initialize() {
     mosquitto_lib_init();
@@ -33,8 +38,9 @@ public class SMosquitto {
     mosquitto_destroy(handle)
   }
 
-  public func connect(host: String, port: Int32, keepalive: Int32) throws {
-    try mosquitto_connect(handle, host, port, keepalive).failable()
+  // MARK: - Connection
+  public func connect(host: String, port: Int32, keepalive: Int32, bindAddress: String? = nil) throws {
+    try mosquitto_connect_bind(handle, host, port, keepalive, bindAddress).failable()
   }
 
   public func disconnect() throws {
@@ -48,20 +54,97 @@ public class SMosquitto {
   public func setLoginInformation(username: String, password: String) throws {
     try mosquitto_username_pw_set(handle, username, password).failable()
   }
+
+  // MARK: - Loop
+
+  public enum Timeout {
+    case instant
+    case interval(TimeInterval)
+
+    fileprivate var rawFormat: Int32 {
+      switch self {
+      case .instant:
+        return 0
+      case .interval(let timeInterval):
+        return Int32(timeInterval * pow(10, 3))
+      }
+    }
+  }
+
+  public func loopStart() throws {
+    try mosquitto_loop_start(handle).failable()
+  }
+
+  public func loopStop(force: Bool = false) throws {
+    try mosquitto_loop_stop(handle, force).failable();
+  }
+
+  public func loop(timeout: Timeout, maxPackets: Int32 = 1) throws {
+    try mosquitto_loop(handle, timeout.rawFormat, maxPackets).failable()
+  }
+
+  public func loopForever(timeout: Timeout, maxPackets: Int32 = 1) throws {
+    try mosquitto_loop_forever(handle, timeout.rawFormat, maxPackets).failable()
+  }
+
+  public func loopRead(maxPackets: Int32 = 1) throws {
+    try mosquitto_loop_read(handle, maxPackets).failable()
+  }
+
+  public func loopWrite(maxPackets: Int32 = 1) throws {
+    try mosquitto_loop_write(handle, maxPackets).failable()
+  }
+
+  public func loopMisc() throws {
+    try mosquitto_loop_misc(handle).failable()
+  }
+
+  public func wantWrite() -> Bool {
+    return mosquitto_want_write(handle)
+  }
+
+  public func setIsThreaded(_ isThreaded: Bool) throws {
+    try mosquitto_threaded_set(handle, isThreaded).failable()
+  }
+
 }
 
 // MARK: - Callbacks
 private extension SMosquitto {
   private func setupCallbacks() {
     setupOnConnectCallback()
+    setupOnMessageCallback()
+    setupOnDisconnectCallback()
+    setupOnPublishCallback()
   }
 
   private func setupOnConnectCallback() {
     mosquitto_connect_callback_set(handle) { (callbackHandle, _, mosConnectionResponseCode) in
-      guard let handle = callbackHandle else { return }
-      guard let smosquitto = Instances.get(handle) else { return }
       let code = SMosquitto.ConnectionResponseCode(mosquittoCode: mosConnectionResponseCode)
-      smosquitto.delegate?.onConnect(smosquitto, connectionResponseCode: code)
+      Instances.unwrapGet(callbackHandle)?.onConnect?(code)
     }
   }
+
+  private func setupOnMessageCallback() {
+    mosquitto_message_callback_set(handle) { (callbackHandle, _, mosMessagePtr) in
+      guard let mosMessage = mosMessagePtr?.pointee else {
+        assertionFailure("Unexpected empty message")
+        return
+      }
+      Instances.unwrapGet(callbackHandle)?.onMessage?(Message(mosMessage))
+    }
+  }
+
+  private func setupOnDisconnectCallback() {
+    mosquitto_disconnect_callback_set(handle) { (callbackHandle, _, rawDisconnectReason) in
+      Instances.unwrapGet(callbackHandle)?.onDisconnect?(DisconnectReason(rawDisconnectReason))
+    }
+  }
+
+  private func setupOnPublishCallback() {
+    mosquitto_publish_callback_set(handle) { (callbackHandle, _, rawMessageId) in
+      Instances.unwrapGet(callbackHandle)?.onPublish?(Identifier<Message>(rawValue: rawMessageId))
+    }
+  }
+
 }

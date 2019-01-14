@@ -47,4 +47,13 @@ internal extension MosqErrRawValue {
       throw SMosquittoError.unknown
     }
   }
+
+  func toSMosquittoError() -> SMosquittoError {
+    if let error = SMosquittoError(rawValue: self as MosqErrRawValue) {
+      return error
+    }
+    else {
+      return .unknown
+    }
+  }
 }

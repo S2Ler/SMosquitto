@@ -8,6 +8,9 @@ public class SMosquitto {
   public var onMessage: ((Message) -> Void)?
   public var onDisconnect: ((DisconnectReason) -> Void)?
   public var onPublish: ((Identifier<Message>) -> Void)?
+  public var onSubscribe: ((Array<QOS>) -> Void)?
+  public var onUnsubscribe: ((Identifier<Message>) -> Void)?
+  public var onLog: ((LogLevel, String) -> Void)?
 
   public static func initialize() {
     mosquitto_lib_init();
@@ -116,6 +119,9 @@ private extension SMosquitto {
     setupOnMessageCallback()
     setupOnDisconnectCallback()
     setupOnPublishCallback()
+    setupOnSubscribeCallback()
+    setupOnUnsubscribeCallback()
+    setupOnLogCallback()
   }
 
   private func setupOnConnectCallback() {
@@ -147,4 +153,32 @@ private extension SMosquitto {
     }
   }
 
+  private func setupOnSubscribeCallback() {
+    mosquitto_subscribe_callback_set(handle) { (callbackHandle, _, rawMessageId, qosCount, grantedQos) in
+      guard let grantedQos = grantedQos else {
+        assertionFailure("Unexpected nil qos array")
+        return
+      }
+      let qosPtr = UnsafeBufferPointer(start: grantedQos, count: Int(qosCount))
+      let qos = Array(qosPtr).compactMap { QOS(rawValue: $0) }
+      Instances.unwrapGet(callbackHandle)?.onSubscribe?(qos)
+    }
+  }
+
+  private func setupOnUnsubscribeCallback() {
+    mosquitto_unsubscribe_callback_set(handle) { (callbackHandle, _, rawMessageId) in
+      Instances.unwrapGet(callbackHandle)?.onUnsubscribe?(Identifier<Message>(rawValue: rawMessageId))
+    }
+  }
+
+  private func setupOnLogCallback() {
+    mosquitto_log_callback_set(handle) { (callbackHandle, _, rawLogLevel, rawLogMessage) in
+      guard let rawLogMessage = rawLogMessage else {
+        assertionFailure("Unexpected nil log message")
+        return
+      }
+      let logLevel = LogLevel(rawValue: rawLogLevel) ?? .all
+      Instances.unwrapGet(callbackHandle)?.onLog?(logLevel, String(cString: rawLogMessage))
+    }
+  }
 }

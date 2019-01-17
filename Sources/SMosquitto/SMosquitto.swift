@@ -58,6 +58,19 @@ public class SMosquitto {
     try mosquitto_username_pw_set(handle, username, password).failable()
   }
 
+  public func setReconnectDelay(reconnectDelay: Delay,
+                                reconnectDelayMax: Delay,
+                                useReconnectExponentialBackoff: Bool) throws {
+    try mosquitto_reconnect_delay_set(handle,
+                                      reconnectDelay.seconds,
+                                      reconnectDelayMax.seconds,
+                                      useReconnectExponentialBackoff).failable()
+  }
+
+  public func setSocks5(host: String, port: Int32, username: String? = nil, password: String? = nil) throws {
+    try mosquitto_socks5_set(handle, host, port, username, password).failable()
+  }
+
   // MARK: - Loop
 
   public enum Timeout {
@@ -71,6 +84,14 @@ public class SMosquitto {
       case .interval(let timeInterval):
         return Int32(timeInterval * pow(10, 3))
       }
+    }
+  }
+
+  public struct Delay {
+    public let seconds: UInt32
+
+    public init(seconds: UInt32) {
+      self.seconds = seconds
     }
   }
 
@@ -110,6 +131,11 @@ public class SMosquitto {
     try mosquitto_threaded_set(handle, isThreaded).failable()
   }
 
+  // MARK: - Other
+  
+  public func setMaxInflightMessages(_ maxInflightMessage: UInt32) throws {
+    try mosquitto_max_inflight_messages_set(handle, maxInflightMessage).failable()
+  }
 }
 
 // MARK: - Callbacks

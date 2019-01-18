@@ -42,6 +42,7 @@ public class SMosquitto {
   }
 
   // MARK: - Connection
+
   public func connect(host: String, port: Int32, keepalive: Int32, bindAddress: String? = nil) throws {
     try mosquitto_connect_bind(handle, host, port, keepalive, bindAddress).failable()
   }
@@ -131,14 +132,35 @@ public class SMosquitto {
     try mosquitto_threaded_set(handle, isThreaded).failable()
   }
 
+  // MARK: - Publish
+
+  public func setWill(topic: String, payload: Payload, qos: QOS, retain: Bool) throws {
+    try payload.data.withUnsafeBytes { (ptr) -> Int32 in
+      mosquitto_will_set(handle, topic, payload.count, ptr, qos.rawValue, retain)
+    }.failable()
+  }
+
+  public func clearWill() throws {
+    try mosquitto_will_clear(handle).failable()
+  }
+
+  public func publish(topic: String, payload: Payload, qos: QOS, retain: Bool) throws -> Identifier<Message> {
+    var messageId: Int32 = 0
+    try payload.data.withUnsafeBytes { (ptr) -> Int32 in
+      mosquitto_publish(handle, &messageId, topic, Int32(payload.count), ptr, qos.rawValue, retain)
+      }.failable()
+    return Identifier<Message>(rawValue: messageId)
+  }
+
   // MARK: - Other
-  
+
   public func setMaxInflightMessages(_ maxInflightMessage: UInt32) throws {
     try mosquitto_max_inflight_messages_set(handle, maxInflightMessage).failable()
   }
 }
 
 // MARK: - Callbacks
+
 private extension SMosquitto {
   private func setupCallbacks() {
     setupOnConnectCallback()

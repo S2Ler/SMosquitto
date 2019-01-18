@@ -4,11 +4,17 @@ import cmosquitto
 public extension SMosquitto {
   public struct Message {
     public let id: Identifier<Message>
+    public let topic: String
+    public let payload: Payload
     public let qos: QOS
     public let retain: Bool
 
     internal init(_ mosMessage: mosquitto_message) {
       self.id = Identifier<Message>(rawValue: mosMessage.mid)
+      self.topic = String(cString: mosMessage.topic)
+
+      payload = SMosquitto.convertRawPayloadToPayload(rawPayload: mosMessage.payload,
+                                                      count: Int(mosMessage.payloadlen))
       if let qos = QOS(rawValue: mosMessage.qos) {
         self.qos = qos
       }
@@ -19,15 +25,18 @@ public extension SMosquitto {
 
       retain = mosMessage.retain
     }
-    /*
-     struct mosquitto_message{
-     int mid;
-     char *topic;
-     void *payload;
-     int payloadlen;
-     int qos;
-     bool retain;
-     };
-     */
+  }
+
+  private static func convertRawPayloadToPayload(rawPayload: UnsafeMutableRawPointer?,
+                                                 count: Int) -> Payload {
+    return Payload(rawPayload: rawPayload, count: count)
+  }
+}
+
+public extension SMosquitto.Message {
+  public var payloadString: String? {
+    get {
+      return payload.string
+    }
   }
 }

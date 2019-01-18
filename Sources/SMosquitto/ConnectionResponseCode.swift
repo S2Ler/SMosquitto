@@ -29,6 +29,11 @@ public extension SMosquitto.ConnectionResponseCode {
 
 extension SMosquitto.ConnectionResponseCode: CustomStringConvertible {
   public var description: String {
-    return String(cString: mosquitto_connack_string(rawValue))
+    if (self == SMosquitto.ConnectionResponseCode.unknown) {
+      return "Unknown";
+    }
+    else {
+      return String(cString: mosquitto_connack_string(rawValue))
+    }
   }
 }

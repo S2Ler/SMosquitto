@@ -2,24 +2,29 @@ import XCTest
 import SMosquitto
 
 internal let mosId = "SMosquittoTests"
-internal func obtainConnectedMosquitto() throws -> SMosquitto {
+internal func setUpMosquitto() throws -> SMosquitto {
   SMosquitto.initialize()
   let mosquitto = SMosquitto(id: mosId, cleanSession: true)
   try mosquitto.setLoginInformation(username: Env.get(.username),
                                     password: Env.get(.password))
   try mosquitto.connect(host: Env.get(.server), port: Env.get(.port), keepalive:45)
+  try mosquitto.loopStart()
   return mosquitto
+}
+
+internal func tearDownMosquitto(_ smosquitto: SMosquitto) throws {
+  try smosquitto.loopStop(force: true)
+  SMosquitto.cleanup()
 }
 
 class SMosquittoTests: XCTestCase {
   func testConnect() throws {
-      let mosquitto = try obtainConnectedMosquitto()
-      try mosquitto.disconnect()
+    let mosquitto = try setUpMosquitto()
+    try tearDownMosquitto(mosquitto)
   }
 
   func testPublishSubscribe() throws {
-    let mosquitto = try obtainConnectedMosquitto()
-    try mosquitto.loopStart()
+    let mosquitto = try setUpMosquitto()
 
     let messageReceived = expectation(description: "Message Received")
     let messagePayload = "test_message"
@@ -44,6 +49,6 @@ class SMosquittoTests: XCTestCase {
 
     waitForExpectations(timeout: 5, handler: nil)
 
-    try mosquitto.loopStop(force: true)
+    try tearDownMosquitto(mosquitto)
   }
 }

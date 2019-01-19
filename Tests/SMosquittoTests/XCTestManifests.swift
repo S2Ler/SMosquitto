@@ -23,6 +23,13 @@ extension SMosquittoLogLevelTests {
     ]
 }
 
+extension SMosquittoTests {
+    static let __allTests = [
+        ("testConnect", testConnect),
+        ("testPublishSubscribe", testPublishSubscribe),
+    ]
+}
+
 extension SMosquittoVersionTests {
     static let __allTests = [
         ("testCodable", testCodable),
@@ -37,6 +44,7 @@ public func __allTests() -> [XCTestCaseEntry] {
         testCase(InstancesTests.__allTests),
         testCase(SMosquittoErrorTests.__allTests),
         testCase(SMosquittoLogLevelTests.__allTests),
+        testCase(SMosquittoTests.__allTests),
         testCase(SMosquittoVersionTests.__allTests),
     ]
 }

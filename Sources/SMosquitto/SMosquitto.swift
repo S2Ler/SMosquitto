@@ -144,11 +144,21 @@ public class SMosquitto {
     try mosquitto_will_clear(handle).failable()
   }
 
+  @discardableResult
   public func publish(topic: String, payload: Payload, qos: QOS, retain: Bool) throws -> Identifier<Message> {
     var messageId: Int32 = 0
     try payload.data.withUnsafeBytes { (ptr) -> Int32 in
       mosquitto_publish(handle, &messageId, topic, Int32(payload.count), ptr, qos.rawValue, retain)
       }.failable()
+    return Identifier<Message>(rawValue: messageId)
+  }
+
+  // MARK: - Subscribe
+
+  @discardableResult
+  public func subscribe(subscriptionPattern: String, qos: QOS) throws -> Identifier<Message> {
+    var messageId: Int32 = 0
+    try mosquitto_subscribe(handle, &messageId, subscriptionPattern, qos.rawValue).failable()
     return Identifier<Message>(rawValue: messageId)
   }
 

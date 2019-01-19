@@ -55,7 +55,7 @@ public class SMosquitto {
     try mosquitto_reconnect(handle).failable()
   }
 
-  public func setLoginInformation(username: String, password: String) throws {
+  public func setLoginInformation(username: String, password: String?) throws {
     try mosquitto_username_pw_set(handle, username, password).failable()
   }
 

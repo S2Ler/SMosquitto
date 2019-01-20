@@ -126,7 +126,17 @@ public class SMosquitto {
     try mosquitto_reconnect(handle).failable()
   }
 
-  public func setLoginInformation(username: String, password: String?) throws {
+  /**
+   Configure username and password for a mosquitton instance.
+   This is only supported by brokers that implement the MQTT spec v3.1.
+   By default, no username or password will be sent.
+   If username is nil, the password argument is ignored.
+   This must be called before calling `connect`.
+   - Parameters:
+     - username: the username to send as a string, or nil to disable authentication.
+     - password: the password to send as a string. Set to nil when username is valid in order to send just a username.
+   */
+  public func setLoginInformation(username: String?, password: String?) throws {
     try mosquitto_username_pw_set(handle, username, password).failable()
   }
 

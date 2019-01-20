@@ -1,6 +1,23 @@
 import Foundation
 import cmosquitto
 
+/**
+ - Important:
+ The following functions that deal with network operations might succeed,
+ but this does not mean that the operation has taken place.
+ An attempt will be made to write the network data, but if the socket is not available for writing at that time
+ then the packet will not be sent.
+ To ensure the packet is sent, call `loop` (which must also be called to process incoming network data).
+ This is especially important when disconnecting a client that has a will.
+ If the broker does not receive the DISCONNECT command,
+ it will assume that the client has disconnected unexpectedly and send the will.
+
+ - `connect`
+ - `disconnect`
+ - `subscribe`
+ - `mosquitto_unsubscribe`
+ - `mosquitto_publish`
+ */
 public class SMosquitto {
   private let handle: OpaquePointer
   
@@ -12,23 +29,58 @@ public class SMosquitto {
   public var onUnsubscribe: ((Identifier<Message>) -> Void)?
   public var onLog: ((LogLevel, String) -> Void)?
 
+  /**
+   Must be called before any other SMosquitto functions.
+
+   - important: This function is *not* thread safe.
+   */
   public static func initialize() {
     mosquitto_lib_init();
   }
 
+  /**
+   This function allows an existing SMosquitto instance to be reused.
+   Closes any open network connections, frees memory and reinitialise the client with the new parameters.
+
+   - Parameters:
+     - id: string to use as the client id. If nil, a random client id will be generated.
+   If id is nil, cleanSession must be true.
+     - cleanSession: set to true to instruct the broker to clean all messages and subscriptions on disconnect,
+   false to instruct it to keep them. See the man page mqtt(7) for more details.
+   Must be set to true if the id parameter is nil.
+   */
   public func reinitialise(id: String? = nil, cleanSession: Bool = true) throws {
     try mosquitto_reinitialise(handle, id, cleanSession, nil).failable()
     setupCallbacks()
   }
 
+  /// Returns version information for the mosquitto library.
   public static func version() -> Version {
     return Version()
   }
 
+  /// Returns version information for mosquitto library which SMosquitto was compiled with.
+  public static func compiledWithVersion() -> Version {
+    return Version.compiledWithVersion()
+  }
+
+  /// Call to free resources associated with the library.
   public static func cleanup() {
     mosquitto_lib_cleanup();
   }
 
+  /**
+   Create a new mosquitto client instance.
+
+   - Parameters:
+     - id: String to use as the client id. If nil, a random client id will be generated.
+   If id is nil, cleanSession must be true.
+     - cleanSession: set to true to instruct the broker to clean all messages and subscriptions on disconnect,
+   false to instruct it to keep them. See the man page mqtt(7) for more details.
+   Note that a client will never discard its own outgoing messages on disconnect.
+   Calling `disconnect` or  `connect` will cause the messages to be resent.
+   Use `reinitialise` to reset a client to its original state.  Must be set to true if the id parameter is nil.
+   */
   public init(id: String? = nil, cleanSession: Bool = true) {
     self.handle = mosquitto_new(id, cleanSession, nil)
 
@@ -36,6 +88,7 @@ public class SMosquitto {
     setupCallbacks()
   }
 
+  /// Free memory associated with a mosquitto client instance.
   deinit {
     Instances.clear(handle)
     mosquitto_destroy(handle)
@@ -43,14 +96,32 @@ public class SMosquitto {
 
   // MARK: - Connection
 
-  public func connect(host: String, port: Int32, keepalive: Int32, bindAddress: String? = nil) throws {
+  /**
+   Connect to an MQTT broker. This extends the functionality of `connect` by adding the `bindAddress` parameter.
+   Use this function if you need to restrict network communication over a particular interface.
+
+   - Parameters:
+     - host: the hostname or ip address of the broker to connect to.
+     - port: the network port to connect to.
+     - keepalive: the number of seconds after which the broker should send a PING message to the client
+   if no other messages have been exchanged in that time.
+     - bindAddress: the hostname or ip address of the local network interface to bind to.
+   */
+  public func connect(host: String, port: Int32 = 1883, keepalive: Int32, bindAddress: String? = nil) throws {
     try mosquitto_connect_bind(handle, host, port, keepalive, bindAddress).failable()
   }
 
+  /// Disconnect from the broker.
   public func disconnect() throws {
     try mosquitto_disconnect(handle).failable()
   }
 
+  /**
+   Reconnect to a broker.
+
+   This function provides an easy way of reconnecting to a broker after a connection has been lost.
+   It uses the values that were provided in the `connect` call. It must not be called before `connect`.
+   */
   public func reconnect() throws {
     try mosquitto_reconnect(handle).failable()
   }
@@ -137,7 +208,7 @@ public class SMosquitto {
   public func setWill(topic: String, payload: Payload, qos: QOS, retain: Bool) throws {
     try payload.data.withUnsafeBytes { (ptr) -> Int32 in
       mosquitto_will_set(handle, topic, payload.count, ptr, qos.rawValue, retain)
-    }.failable()
+      }.failable()
   }
 
   public func clearWill() throws {

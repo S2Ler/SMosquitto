@@ -17,6 +17,24 @@ public extension SMosquitto {
       self.revision = revision
     }
 
+    private init(major: Int32, minor: Int32, revision: Int32, uniqueVersionNumber: Int32) {
+      self.major = major
+      self.minor = minor
+      self.revision = revision
+      self.uniqueVersionNumber = uniqueVersionNumber
+    }
+
+    internal static func compiledWithVersion() -> Version {
+      let LIBMOSQUITTO_VERSION_NUMBER: Int32
+        = LIBMOSQUITTO_MAJOR * 1000000
+          + LIBMOSQUITTO_MINOR * 1000
+          + LIBMOSQUITTO_REVISION;
+      return Version(major: LIBMOSQUITTO_MAJOR,
+                     minor: LIBMOSQUITTO_MINOR,
+                     revision: LIBMOSQUITTO_REVISION,
+                     uniqueVersionNumber: LIBMOSQUITTO_VERSION_NUMBER)
+    }
+
     public var hashValue: Int {
       return Int(uniqueVersionNumber)
     }

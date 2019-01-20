@@ -140,6 +140,28 @@ public class SMosquitto {
     try mosquitto_username_pw_set(handle, username, password).failable()
   }
 
+  /**
+   Control the behaviour of the client when it has unexpectedly disconnected in `loopForever` or after `loopStart`.
+   The default behaviour if this function is not used
+   is to repeatedly attempt to reconnect with a delay of 1 second until the connection succeeds.
+
+   Use `reconnectDelay` parameter to change the delay between successive reconnection attempts.
+   You may also enable exponential backoff of the time between reconnections
+   by setting `useReconnectExponentialBackoff` to true and set an upper bound on the delay with `reconnectDelayMax`.
+
+   # Example 1:
+     delay=2, delay_max=10, exponential_backoff=False
+     Delays would be: 2, 4, 6, 8, 10, 10, ...
+
+   # Example 2:
+     delay=3, delay_max=30, exponential_backoff=True
+     Delays would be: 3, 6, 12, 24, 30, 30, ...
+
+   - Parameters:
+     - reconnectDelay: the number of seconds to wait between reconnects.
+     - reconnectDelayMax: the maximum number of seconds to wait between reconnects.
+     - useReconnectExponentialBackoff: use exponential backoff between reconnect attempts.
+   */
   public func setReconnectDelay(reconnectDelay: Delay,
                                 reconnectDelayMax: Delay,
                                 useReconnectExponentialBackoff: Bool) throws {

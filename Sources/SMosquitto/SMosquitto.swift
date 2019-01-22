@@ -171,6 +171,16 @@ public class SMosquitto {
                                       useReconnectExponentialBackoff).failable()
   }
 
+  /**
+   Configure the client to use a SOCKS5 proxy when connecting. Must be called
+   before connecting. "None" and "username/password" authentication is
+   supported.
+   - Parameters:
+     - host: the SOCKS5 proxy host to connect to.
+     - port: the SOCKS5 proxy port to use.
+     - username: if not nil, use this username when authenticating with the proxy.
+     - password: if not nil and username is not nil, use this password when authenticating with the proxy.
+   */
   public func setSocks5(host: String, port: Int32, username: String? = nil, password: String? = nil) throws {
     try mosquitto_socks5_set(handle, host, port, username, password).failable()
   }
@@ -199,14 +209,41 @@ public class SMosquitto {
     }
   }
 
+  /**
+   This is part of the threaded client interface. Call this once to start a new thread to process network traffic.
+   This provides an alternative to repeatedly calling `loop` yourself.
+   */
   public func loopStart() throws {
     try mosquitto_loop_start(handle).failable()
   }
 
+  /**
+   This is part of the threaded client interface.
+   Call this once to stop the network thread previously created with `loopStart`.
+   This call will block until the network thread finishes.
+   For the network thread to end, you must have previously called `disconnect or have set the force parameter to true.
+
+   - Parameters:
+     - force: set to true to force thread cancellation. If false, `disconnect` must have already been called.
+   */
   public func loopStop(force: Bool = false) throws {
     try mosquitto_loop_stop(handle, force).failable();
   }
 
+  /**
+   The main network loop for the client. You must call this frequently in order to keep communications between
+   the client and broker working. If incoming data is present it will then be processed. Outgoing commands, from e.g.
+   `publish`, are normally sent immediately that their function is called, but this is not always possible.
+   `loop` will also attempt to send any remaining outgoing messages, which also includes commands that are part of the
+   flow for messages with QoS > 0.
+      An alternative approach is to use `loopStart` to run the client loop in its own thread.
+      This calls `select()` to monitor the client network socket. If you want to integrate mosquitto client operation with
+   your own `select()` call, use `socket`, `loopRead`, `loopWrite` and `loopMisc`.
+   - Parameters:
+     - timeout: Maximum number of milliseconds to wait for network activity in the `select()` call before timing out.
+   Set to 0 for instant return.  Set negative to use the default of 1 seconds.
+     - max_packets: this parameter is currently unused and should be set to 1 for future compatibility.
+   */
   public func loop(timeout: Timeout, maxPackets: Int32 = 1) throws {
     try mosquitto_loop(handle, timeout.rawFormat, maxPackets).failable()
   }

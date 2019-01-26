@@ -20,6 +20,7 @@ import cmosquitto
  */
 public class SMosquitto {
   private let handle: OpaquePointer
+  private var tlsPassword: String?
   
   public var onConnect: ((ConnectionResponseCode) -> Void)?
   public var onMessage: ((Message) -> Void)?
@@ -349,6 +350,36 @@ public class SMosquitto {
     var messageId: Int32 = 0
     try mosquitto_subscribe(handle, &messageId, subscriptionPattern, qos.rawValue).failable()
     return Identifier<Message>(rawValue: messageId)
+  }
+
+  // MARK: - TLS
+
+  public func setTLS(caFilePath: String,
+                     caDirPath: String,
+                     certFilePath: String? = nil,
+                     keyFile: String? = nil,
+                     keyPassword: String? = nil) throws {
+    if let keyPassword = keyPassword {
+      self.tlsPassword = keyPassword
+      return try mosquitto_tls_set(handle, caFilePath, caDirPath, certFilePath, keyFile,
+                                   { (buf: UnsafeMutablePointer<Int8>?, bufSize: Int32, _, callbackHandler) -> Int32 in
+                                    let callbackHandlerPointer = unsafeBitCast(callbackHandler, to: OpaquePointer.self)
+                                    guard let mosquitto = Instances.unwrapGet(callbackHandlerPointer),
+                                      mosquitto.tlsPassword?.isEmpty == .some(false) else {
+                                      return 0
+                                    }
+
+                                    return mosquitto.tlsPassword?.withCString({ (cTlsPassword) -> Int32 in
+                                      let cTlsPasswordLength = Int32(strlen(cTlsPassword))
+                                      let copiedSize = cTlsPasswordLength < bufSize ? cTlsPasswordLength : bufSize - 1;
+                                      memcpy(buf, cTlsPassword, Int(copiedSize))
+                                      return copiedSize
+                                    }) ?? 0
+      }).failable()
+    }
+    else {
+      return try mosquitto_tls_set(handle, caFilePath, caDirPath, certFilePath, keyFile, nil).failable()
+    }
   }
 
   // MARK: - Other

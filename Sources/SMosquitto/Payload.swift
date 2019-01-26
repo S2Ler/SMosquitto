@@ -1,7 +1,7 @@
 import Foundation
 
 public extension SMosquitto {
-  public struct Payload {
+  struct Payload {
     internal let data: Data
 
     public init() {
@@ -11,7 +11,7 @@ public extension SMosquitto {
     public init(_ string: String) {
       data = Data(string.utf8)
     }
-
+    
     public init(rawPayload: UnsafeMutableRawPointer?, count: Int) {
       guard let rawPayload = rawPayload else { data = Data(); return }
       let pointer = rawPayload.bindMemory(to: UInt8.self, capacity: count)
@@ -25,8 +25,8 @@ public extension SMosquitto {
   }
 }
 
-extension SMosquitto.Payload {
-  public var string: String? {
+public extension SMosquitto.Payload {
+  var string: String? {
     return String(bytes: data, encoding: .utf8)
   }
 }

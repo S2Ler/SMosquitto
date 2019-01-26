@@ -372,7 +372,11 @@ public class SMosquitto {
                                     return mosquitto.tlsPassword?.withCString({ (cTlsPassword) -> Int32 in
                                       let cTlsPasswordLength = Int32(strlen(cTlsPassword))
                                       let copiedSize = cTlsPasswordLength < bufSize ? cTlsPasswordLength : bufSize - 1;
+                                      #if os(Linux)
+                                      memcpy(buf!, cTlsPassword, Int(copiedSize))
+                                      #else
                                       memcpy(buf, cTlsPassword, Int(copiedSize))
+                                      #endif
                                       return copiedSize
                                     }) ?? 0
       }).failable()

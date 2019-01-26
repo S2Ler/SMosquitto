@@ -132,6 +132,7 @@ public class SMosquitto {
    By default, no username or password will be sent.
    If username is nil, the password argument is ignored.
    This must be called before calling `connect`.
+
    - Parameters:
      - username: the username to send as a string, or nil to disable authentication.
      - password: the password to send as a string. Set to nil when username is valid in order to send just a username.
@@ -175,6 +176,7 @@ public class SMosquitto {
    Configure the client to use a SOCKS5 proxy when connecting. Must be called
    before connecting. "None" and "username/password" authentication is
    supported.
+
    - Parameters:
      - host: the SOCKS5 proxy host to connect to.
      - port: the SOCKS5 proxy port to use.
@@ -237,37 +239,84 @@ public class SMosquitto {
    `loop` will also attempt to send any remaining outgoing messages, which also includes commands that are part of the
    flow for messages with QoS > 0.
       An alternative approach is to use `loopStart` to run the client loop in its own thread.
-      This calls `select()` to monitor the client network socket. If you want to integrate mosquitto client operation with
-   your own `select()` call, use `socket`, `loopRead`, `loopWrite` and `loopMisc`.
+      This calls `select()` to monitor the client network socket. If you want to integrate mosquitto client operation
+   with your own `select()` call, use `socket`, `loopRead`, `loopWrite` and `loopMisc`.
+
    - Parameters:
-     - timeout: Maximum number of milliseconds to wait for network activity in the `select()` call before timing out.
-   Set to 0 for instant return.  Set negative to use the default of 1 seconds.
-     - max_packets: this parameter is currently unused and should be set to 1 for future compatibility.
+     - timeout: Maximum time interval to wait for network activity in the `select()` call before timing out.
+     - maxPackets: this parameter is currently unused and should be set to 1 for future compatibility.
    */
-  public func loop(timeout: Timeout, maxPackets: Int32 = 1) throws {
+  public func loop(timeout: Timeout = .interval(1), maxPackets: Int32 = 1) throws {
     try mosquitto_loop(handle, timeout.rawFormat, maxPackets).failable()
   }
 
-  public func loopForever(timeout: Timeout, maxPackets: Int32 = 1) throws {
+  /**
+   * This function call loop() for you in an infinite blocking loop. It is useful
+   * for the case where you only want to run the MQTT client loop in your
+   * program.
+   *
+   * It handles reconnecting in case server connection is lost. If you call
+   * mosquitto_disconnect() in a callback it will return.
+   *
+   - Parameters:
+     - timeout: Maximum time interval to wait for network activity in the `select()` call before timing out.
+     - maxPackets: this parameter is currently unused and should be set to 1 for future compatibility.
+   */
+  public func loopForever(timeout: Timeout = .interval(1), maxPackets: Int32 = 1) throws {
     try mosquitto_loop_forever(handle, timeout.rawFormat, maxPackets).failable()
   }
 
+  /**
+   Carry out network read operations.
+   This should only be used if you are not using `loop` and
+   are monitoring the client network socket for activity yourself.
+
+   - Parameters:
+     - maxPackets: this parameter is currently unused and should be set to 1 for future compatibility.
+   */
   public func loopRead(maxPackets: Int32 = 1) throws {
     try mosquitto_loop_read(handle, maxPackets).failable()
   }
 
+  /**
+   Carry out network write operations.
+   This should only be used if you are not using `loop` and
+   are monitoring the client network socket for activity yourself.
+
+   - Parameters:
+     - maxPackets: this parameter is currently unused and should be set to 1 for future compatibility.
+   */
   public func loopWrite(maxPackets: Int32 = 1) throws {
     try mosquitto_loop_write(handle, maxPackets).failable()
   }
 
+  /**
+   Carry out miscellaneous operations required as part of the network loop.
+   This should only be used if you are not using `loop` and are
+   monitoring the client network socket for activity yourself.
+
+   This function deals with handling PINGs and checking whether messages need
+   to be retried, so should be called fairly frequently.
+   */
   public func loopMisc() throws {
     try mosquitto_loop_misc(handle).failable()
   }
 
+  /// Returns true if there is data ready to be written on the socket.
   public func wantWrite() -> Bool {
     return mosquitto_want_write(handle)
   }
 
+  /**
+   Used to tell the library that your application is using threads, but not using `loopStart`.
+   The library operates slightly differently when not in threaded mode in order to simplify its operation.
+   If you are managing your own threads and do not use this function you will experience crashes due to race conditions.
+
+   When using `loopStart`, this is set automatically.
+
+   - Parameters:
+     - isThreaded: true if your application is using threads, false otherwise.
+   */
   public func setIsThreaded(_ isThreaded: Bool) throws {
     try mosquitto_threaded_set(handle, isThreaded).failable()
   }

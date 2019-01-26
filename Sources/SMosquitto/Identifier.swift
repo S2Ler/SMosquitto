@@ -1,7 +1,7 @@
 import Foundation
 
 public extension SMosquitto {
-  public struct Identifier<Value>: RawRepresentable, Hashable {
+  struct Identifier<Value>: RawRepresentable, Hashable {
     public let rawValue: Int32
 
     public init(rawValue: Int32) {

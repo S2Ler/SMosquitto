@@ -1,7 +1,7 @@
 import cmosquitto
 
 public extension SMosquitto {
-  public enum ConnectionResponseCode: Int32 {
+  enum ConnectionResponseCode: Int32 {
     case success = 0
     case unacceptableProtocolVersion = 1
     case identifierRejected = 2
@@ -11,7 +11,7 @@ public extension SMosquitto {
 }
 
 public extension SMosquitto.ConnectionResponseCode {
-  public init(mosquittoCode: Int32) {
+  init(mosquittoCode: Int32) {
     switch mosquittoCode {
     case 0:
       self = .success

@@ -1,7 +1,7 @@
 import Foundation
 
 public extension SMosquitto {
-  public enum DisconnectReason {
+  enum DisconnectReason {
     case userInitiated
     case error(SMosquittoError)
 

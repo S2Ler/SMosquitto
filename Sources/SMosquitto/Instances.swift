@@ -2,7 +2,7 @@ import Foundation
 import cmosquitto
 
 internal extension SMosquitto {
-  internal struct Instances {
+  struct Instances {
     private static let queue: DispatchQueue = DispatchQueue(label: "smosquitto.instances",
                                                             qos: .default,
                                                             attributes: .concurrent)

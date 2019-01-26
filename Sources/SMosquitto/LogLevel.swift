@@ -1,7 +1,7 @@
 import cmosquitto
 
 public extension SMosquitto {
-  public enum LogLevel: Int32 {
+  enum LogLevel: Int32 {
     case none  = 0x00
     case info = 0x01
     case notice = 0x02

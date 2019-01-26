@@ -1,7 +1,7 @@
 import cmosquitto
 
 public extension SMosquitto {
-  public struct Version: Hashable, Codable {
+  struct Version: Hashable, Codable {
     public let major: Int32
     public let minor: Int32
     public let revision: Int32

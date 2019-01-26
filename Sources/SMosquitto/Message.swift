@@ -2,7 +2,7 @@ import Foundation
 import cmosquitto
 
 public extension SMosquitto {
-  public struct Message {
+  struct Message {
     public let id: Identifier<Message>
     public let topic: String
     public let payload: Payload
@@ -34,7 +34,7 @@ public extension SMosquitto {
 }
 
 public extension SMosquitto.Message {
-  public var payloadString: String? {
+  var payloadString: String? {
     get {
       return payload.string
     }

@@ -108,8 +108,8 @@ public class SMosquitto {
    if no other messages have been exchanged in that time.
      - bindAddress: the hostname or ip address of the local network interface to bind to.
    */
-  public func connect(host: String, port: Int32 = 1883, keepalive: Int32, bindAddress: String? = nil) throws {
-    try mosquitto_connect_bind(handle, host, port, keepalive, bindAddress).failable()
+  public func connect(host: String, port: Int32 = 1883, keepalive: TimeInterval, bindAddress: String? = nil) throws {
+    try mosquitto_connect_bind(handle, host, port, Int32(keepalive), bindAddress).failable()
   }
 
   /// Disconnect from the broker.

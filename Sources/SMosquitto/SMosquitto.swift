@@ -354,11 +354,62 @@ public class SMosquitto {
 
   // MARK: - TLS
 
-  public func setTLS(caFilePath: String,
-                     caDirPath: String,
-                     certFilePath: String? = nil,
-                     keyFile: String? = nil,
+
+  /**
+   - filePath: path to a file containing the PEM encoded trusted CA certificate files.
+   - dirPath: path to a directory containing the PEM encoded trusted CA certificate files.
+   See mosquitto.conf for more details on  configuring this directory.
+   - both: specify filePath and dirPath (SMosquitto note: not sure if it is valid option, but source code uses both.
+   */
+  public enum CAConfig {
+    case filePath(String)
+    case dirPath(String)
+    case both(filePath: String, dirPath: String)
+
+    func extractPaths() -> (filePath: String?, dirPath: String?) {
+      switch self {
+      case .filePath(let filePath):
+        return (filePath, nil)
+      case .dirPath(let dirPath):
+        return (nil, dirPath)
+      case .both(filePath: let filePath, dirPath: let dirPath):
+        return (filePath, dirPath)
+      }
+    }
+  }
+
+  public struct ClientSertificateConfig {
+    /// Path to a file containing the PEM encoded certificate file.
+    public let certificateFilePath: String
+
+    /// path to a file containing the PEM encoded private key for this client.
+    public let keyFilePath: String
+
+    public init(certificateFilePath: String, keyFilePath: String) {
+      self.certificateFilePath = certificateFilePath
+      self.keyFilePath = keyFilePath
+    }
+  }
+
+  /**
+   Configure the client for certificate based SSL/TLS support. Must be called before `connect.
+   Cannot be used in conjunction with `setTlsPsk`.
+   Define the Certificate Authority certificates to be trusted (ie. the server certificate must be signed
+   with one of these certificates) using cafile.
+   If the server you are connecting to requires clients to provide a  certificate, define certfile and keyfile
+   with your client certificate and private key. If your private key is encrypted, provide a password.
+
+   - Parameters:
+     - caConfig: CA certificates configuration.
+     - clientCertificateConfig: client certificate config.
+     - keyPassword: password for private ket.
+   */
+  public func setTLS(caConfig: CAConfig,
+                     clientCertificateConfig: ClientSertificateConfig?,
                      keyPassword: String? = nil) throws {
+    let (caFilePath, caDirPath) = caConfig.extractPaths()
+    let (certFilePath, keyFile) = (clientCertificateConfig?.certificateFilePath, clientCertificateConfig?.keyFilePath)
+
     if let keyPassword = keyPassword {
       self.tlsPassword = keyPassword
       return try mosquitto_tls_set(handle, caFilePath, caDirPath, certFilePath, keyFile,

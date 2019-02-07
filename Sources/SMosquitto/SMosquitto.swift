@@ -437,6 +437,26 @@ public class SMosquitto {
     }
   }
 
+  /**
+   Configure verification of the server hostname in the server certificate. If value is set to true,
+   it is impossible to guarantee that the host you are connecting to is not impersonating your server.
+   This can be useful in initial server testing, but makes it possible for a malicious third party to impersonate
+   your server through DNS spoofing, for example. Do not use this function in a real system. Setting value to true
+   makes the connection encryption pointless. Must be called before `connect`.
+
+   - parameter insecure: if set to false, the default, certificate hostname checking is performed.
+   If set to true, no hostname checking is performed and the connection is insecure.
+   */
+  public func setTlsInsecure(_ insecure: Bool) throws {
+    try mosquitto_tls_insecure_set(handle, insecure).failable()
+  }
+
+  public func setTlsOptions(_ options: TlsOptions) throws {
+    try mosquitto_tls_opts_set(handle, options.certificateRequirements.rawValue,
+                               options.tlsVersion.rawVersion,
+                               options.ciphers?.rawString).failable()
+  }
+
   // MARK: - Other
 
   public func setMaxInflightMessages(_ maxInflightMessage: UInt32) throws {

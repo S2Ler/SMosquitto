@@ -477,16 +477,43 @@ public class SMosquitto {
 
   // MARK: - Other
 
+  /*
+   Set the number of QoS atleastOnce and exatlyOnce messages that can be "in flight" at one time.
+   An in flight message is part way through its delivery flow. Attempts to send further messages with `publish`
+   will result in the messages being queued until the number of in flight messages reduces.
+
+   A higher number here results in greater message throughput, but if set  higher than the maximum in flight messages
+   on the broker may lead to delays in the messages being acknowledged.
+
+   Set to 0 for no maximum.
+
+   - Parameters:
+     - max_inflight_messages: the maximum number of inflight messages. Defaults to 20.
+   */
   public func setMaxInflightMessages(_ maxInflightMessage: UInt32) throws {
     try mosquitto_max_inflight_messages_set(handle, maxInflightMessage).failable()
   }
 
   public enum ClientOptions {
+    /// Must be set before the client connects
     case protocolVersion(ProtocolVersion)
-    case sslCtx(UnsafeMutableRawPointer)
+    /**
+     Pass an openssl SSL_CTX to be used when creating TLS connections rather than libmosquitto creating its own.
+     This must be called  before connecting to have any effect. If you use this option, the onus is on you to ensure
+     that you are using secure settings. Setting to NULL means that libmosquitto will use its own SSL_CTX
+     if TLS is to be used. This option is only available for openssl 1.1.0 and higher.
+     */
+    case sslCtx(UnsafeMutableRawPointer?)
+    /**
+     If true, then the user specified SSL_CTX passed in using `sslCtx` will have the default options applied to it.
+     This means that you only need to change the values that are relevant to you. If you use this option then you must
+     configure the TLS options as normal, i.e. you should use `setTls` to configure the cafile/capath  as a minimum.
+     This option is only available for openssl 1.1.0 and higher.
+     */
     case sslCtxWithDefaults(Bool)
   }
 
+  /// Used to set options for the client.
   public func setClientOptions(_ clientOptions: [ClientOptions]) throws {
     for clientOption in clientOptions {
       switch clientOption {

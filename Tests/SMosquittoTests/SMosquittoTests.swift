@@ -51,4 +51,11 @@ class SMosquittoTests: XCTestCase {
 
     try tearDownMosquitto(mosquitto)
   }
+
+  func testProtocolVersionSet() throws {
+    SMosquitto.initialize()
+    let mosquitto = SMosquitto(id: mosId, cleanSession: true)
+    try mosquitto.setClientOptions([.protocolVersion(.v3_1)])
+    SMosquitto.cleanup()
+  }
 }

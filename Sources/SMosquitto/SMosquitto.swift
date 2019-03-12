@@ -452,15 +452,54 @@ public class SMosquitto {
   }
 
   public func setTlsOptions(_ options: TlsOptions) throws {
-    try mosquitto_tls_opts_set(handle, options.certificateRequirements.rawValue,
+    try mosquitto_tls_opts_set(handle,
+                               options.certificateRequirements.rawValue,
                                options.tlsVersion.rawVersion,
                                options.ciphers?.rawString).failable()
+  }
+
+  /**
+   Configure the client for pre-shared-key based TLS support. Must be called before `connect`.
+
+   Cannot be used in conjunction with `setTLS`.
+
+   - Parameters:
+     - preSharedKey: the pre-shared-key in hex format with no leading "0x".
+     - identity: the identity of this client. May be used as the username depending on the server settings.
+     - ciphers: a string describing the PSK ciphers available for use.
+     See the "openssl ciphers" tool for more information. If nil, the default ciphers will be used.
+   */
+  public func setTlsPreSharedKey(_ preSharedKey: String,
+                                 identity: String,
+                                 ciphers: String? = nil) throws {
+    try mosquitto_tls_psk_set(handle, preSharedKey, identity, ciphers).failable()
   }
 
   // MARK: - Other
 
   public func setMaxInflightMessages(_ maxInflightMessage: UInt32) throws {
     try mosquitto_max_inflight_messages_set(handle, maxInflightMessage).failable()
+  }
+
+  public enum ClientOptions {
+    case protocolVersion(ProtocolVersion)
+    case sslCtx(UnsafeMutableRawPointer)
+    case sslCtxWithDefaults(Bool)
+  }
+
+  public func setClientOptions(_ clientOptions: [ClientOptions]) throws {
+    for clientOption in clientOptions {
+      switch clientOption {
+      case .protocolVersion(let protocolVersion):
+        var rawProtocolVersion = protocolVersion.rawValue
+        try mosquitto_opts_set(handle, MOSQ_OPT_PROTOCOL_VERSION, &rawProtocolVersion).failable()
+      case .sslCtx(let sslCtx):
+        try mosquitto_opts_set(handle, MOSQ_OPT_SSL_CTX, sslCtx).failable()
+      case .sslCtxWithDefaults(let sslCtxWithDefaults):
+        var rawSslCtxWithDefaults: Int32 = sslCtxWithDefaults ? 1 : 0;
+        try mosquitto_opts_set(handle, MOSQ_OPT_SSL_CTX_WITH_DEFAULTS, &rawSslCtxWithDefaults).failable()
+      }
+    }
   }
 }
 

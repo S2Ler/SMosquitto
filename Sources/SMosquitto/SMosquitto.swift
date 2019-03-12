@@ -497,6 +497,7 @@ public class SMosquitto {
   public enum ClientOptions {
     /// Must be set before the client connects
     case protocolVersion(ProtocolVersion)
+    #if LIBMOSQUITTO_1_5
     /**
      Pass an openssl SSL_CTX to be used when creating TLS connections rather than libmosquitto creating its own.
      This must be called  before connecting to have any effect. If you use this option, the onus is on you to ensure
@@ -511,6 +512,7 @@ public class SMosquitto {
      This option is only available for openssl 1.1.0 and higher.
      */
     case sslCtxWithDefaults(Bool)
+    #endif
   }
 
   /// Used to set options for the client.
@@ -520,11 +522,13 @@ public class SMosquitto {
       case .protocolVersion(let protocolVersion):
         var rawProtocolVersion = protocolVersion.rawValue
         try mosquitto_opts_set(handle, MOSQ_OPT_PROTOCOL_VERSION, &rawProtocolVersion).failable()
+        #if LIBMOSQUITTO_1_5
       case .sslCtx(let sslCtx):
         try mosquitto_opts_set(handle, MOSQ_OPT_SSL_CTX, sslCtx).failable()
       case .sslCtxWithDefaults(let sslCtxWithDefaults):
         var rawSslCtxWithDefaults: Int32 = sslCtxWithDefaults ? 1 : 0;
         try mosquitto_opts_set(handle, MOSQ_OPT_SSL_CTX_WITH_DEFAULTS, &rawSslCtxWithDefaults).failable()
+        #endif
       }
     }
   }

@@ -35,8 +35,8 @@ public extension SMosquitto {
                      uniqueVersionNumber: LIBMOSQUITTO_VERSION_NUMBER)
     }
 
-    public var hashValue: Int {
-      return Int(uniqueVersionNumber)
+    public func hash(into hasher: inout Hasher) {
+      hasher.combine(uniqueVersionNumber)
     }
 
     public static func == (lhs: Version, rhs: Version) -> Bool {

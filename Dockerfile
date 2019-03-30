@@ -1,4 +1,4 @@
-FROM swift:4.2
+FROM swift:5.0
 USER root
 LABEL "com.github.actions.name"="SMosquitto-Actions"
 LABEL "com.github.actions.description"=""

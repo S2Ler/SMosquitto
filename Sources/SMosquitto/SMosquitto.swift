@@ -326,7 +326,7 @@ public class SMosquitto {
 
   public func setWill(topic: String, payload: Payload, qos: QOS, retain: Bool) throws {
     try payload.data.withUnsafeBytes { (ptr) -> Int32 in
-      mosquitto_will_set(handle, topic, payload.count, ptr, qos.rawValue, retain)
+      mosquitto_will_set(handle, topic, payload.count, ptr.baseAddress, qos.rawValue, retain)
       }.failable()
   }
 
@@ -338,7 +338,7 @@ public class SMosquitto {
   public func publish(topic: String, payload: Payload, qos: QOS, retain: Bool) throws -> Identifier<Message> {
     var messageId: Int32 = 0
     try payload.data.withUnsafeBytes { (ptr) -> Int32 in
-      mosquitto_publish(handle, &messageId, topic, Int32(payload.count), ptr, qos.rawValue, retain)
+      mosquitto_publish(handle, &messageId, topic, Int32(payload.count), ptr.baseAddress, qos.rawValue, retain)
       }.failable()
     return Identifier<Message>(rawValue: messageId)
   }

@@ -1,6 +1,6 @@
 # SMoquitto
 
-Swift 4.2, macOS, Linux.
+Swift 5.0, macOS, Linux.
 
 A thin Swift wrapper for [libmosquitto](https://github.com/eclipse/mosquitto/tree/master/lib). Supports macOS and Linux.
 
@@ -10,7 +10,7 @@ Use [SPM](https://swift.org/package-manager/).
 
 Sample `Package.swift`
 ```swift
-// swift-tools-version:4.2
+// swift-tools-version:5.0
 import PackageDescription
 
 let package = Package(
@@ -26,7 +26,7 @@ let package = Package(
       name: "ProjectName",
       dependencies: ["SMosquitto"]),
   ],
-  swiftLanguageVersions: [.v4_2]
+  swiftLanguageVersions: [.v5]
 )
 ```
 

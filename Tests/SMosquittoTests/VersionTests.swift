@@ -5,7 +5,7 @@ class SMosquittoVersionTests: XCTestCase {
 
   func testInSupportedVersionsRange() {
     let version = SMosquitto.version()
-    guard version.major == 1 && version.minor >= 4 else {
+    guard (version.major == 2 && version.minor >= 0) else {
       XCTFail("Unsupported library version")
       return
     }

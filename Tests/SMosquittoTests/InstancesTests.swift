@@ -7,14 +7,15 @@ class InstancesTests: XCTestCase {
     class Handle {}
 
     var handle = Handle()
-    let pointer = UnsafeMutablePointer(&handle)
-    let opaquePointer = OpaquePointer(pointer)
+    withUnsafeMutablePointer(to: &handle) { pointer in
+      let opaquePointer = OpaquePointer(pointer)
 
-    let smosquitto = SMosquitto(id: nil, cleanSession: true)
+      let smosquitto = SMosquitto(id: nil, cleanSession: true)
 
-    SMosquitto.Instances.set(opaquePointer, smosquitto)
-    XCTAssert(SMosquitto.Instances.get(opaquePointer) === smosquitto)
-    SMosquitto.Instances.clear(opaquePointer)
-    XCTAssertNil(SMosquitto.Instances.get(opaquePointer))
+      SMosquitto.Instances.set(opaquePointer, smosquitto)
+      XCTAssert(SMosquitto.Instances.get(opaquePointer) === smosquitto)
+      SMosquitto.Instances.clear(opaquePointer)
+      XCTAssertNil(SMosquitto.Instances.get(opaquePointer))
+    }
   }
 }

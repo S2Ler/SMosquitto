@@ -600,7 +600,7 @@ private extension SMosquitto {
         assertionFailure("Unexpected nil log message")
         return
       }
-      let logLevel = LogLevel(rawValue: rawLogLevel) ?? .all
+      let logLevel = LogLevel(rawValue: Int64(rawLogLevel)) ?? .all
       Instances.unwrapGet(callbackHandle)?.onLog?(logLevel, String(cString: rawLogMessage))
     }
   }

@@ -1,7 +1,7 @@
 import cmosquitto
 
 public extension SMosquitto {
-  enum LogLevel: Int32 {
+  enum LogLevel: Int64 {
     case none  = 0x00
     case info = 0x01
     case notice = 0x02
@@ -11,29 +11,29 @@ public extension SMosquitto {
     case subscribe = 0x20
     case unsubscribe = 0x40
     case websockets = 0x80
-    case all = 0xFFFF
+    case all = 0xFFFFFFFF
 
-    public init?(rawValue: Int32) {
+    public init?(rawValue: Int64) {
       switch rawValue {
-      case MOSQ_LOG_NONE:
+      case Int64(MOSQ_LOG_NONE):
         self = .none
-      case MOSQ_LOG_INFO:
+      case Int64(MOSQ_LOG_INFO):
         self = .info
-      case MOSQ_LOG_NOTICE:
+      case Int64(MOSQ_LOG_NOTICE):
         self = .notice
-      case MOSQ_LOG_WARNING:
+      case Int64(MOSQ_LOG_WARNING):
         self = .warning
-      case MOSQ_LOG_ERR:
+      case Int64(MOSQ_LOG_ERR):
         self = .error
-      case MOSQ_LOG_DEBUG:
+      case Int64(MOSQ_LOG_DEBUG):
         self = .debug
-      case MOSQ_LOG_SUBSCRIBE:
+      case Int64(MOSQ_LOG_SUBSCRIBE):
         self = .subscribe
-      case MOSQ_LOG_UNSUBSCRIBE:
+      case Int64(MOSQ_LOG_UNSUBSCRIBE):
         self = .unsubscribe
-      case MOSQ_LOG_WEBSOCKETS:
+      case Int64(MOSQ_LOG_WEBSOCKETS):
         self = .websockets
-      case MOSQ_LOG_ALL:
+      case Int64(MOSQ_LOG_ALL):
         self = .all
       default:
         return nil
